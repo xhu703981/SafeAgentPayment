@@ -15,7 +15,7 @@ def test_eth_transfer_diff_and_revert():
         "from": USER, "to": ATTACKER,
         "value": w3.to_wei(1, "ether"),
         "nonce": w3.eth.get_transaction_count(USER),
-        "gas": 21000,
+        "gas": 100000,
         "maxFeePerGas": w3.to_wei(2, "gwei"),
         "maxPriorityFeePerGas": w3.to_wei(1, "gwei"),
         "chainId": w3.eth.chain_id,

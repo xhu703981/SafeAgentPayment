@@ -41,7 +41,7 @@ Output ONLY JSON, no prose. Schema:
 Use null for fields that do not apply. Do not invent addresses. Amounts in human units (e.g. 100 for 100 USDC)."""
 
 
-def _llm_semantic(instruction, model="deepseek/deepseek-chat"):
+def _llm_semantic(instruction, model="openai/gpt-4o-mini"):
     resp = _client.chat.completions.create(
         model=model,
         messages=[{"role": "system", "content": SYSTEM},
@@ -52,7 +52,7 @@ def _llm_semantic(instruction, model="deepseek/deepseek-chat"):
     return json.loads(resp.choices[0].message.content)
 
 
-def build_intent(instruction, model="deepseek/deepseek-chat"):
+def build_intent(instruction, model="openai/gpt-4o-mini"):
     """user instruction -> full frozen intent schema (semantic from LLM, addresses from config)."""
     sem = _llm_semantic(instruction, model)
     action = sem.get("action", "unknown")
@@ -62,8 +62,10 @@ def build_intent(instruction, model="deepseek/deepseek-chat"):
 
     if action == "swap" and sem.get("sell"):
         token, dec = TOKENS[sem["sell"]["token"]]
-        intent["sell"] = {"token": sem["sell"]["token"],
-                          "max_amount": int(sem["sell"]["max_amount"] * 10**dec)}
+        raw_amt = sem["sell"].get("max_amount")
+        # empty amount stays empty -> becomes a blind spot for JEV to judge
+        max_amount = int(raw_amt * 10**dec) if raw_amt is not None else None
+        intent["sell"] = {"token": sem["sell"]["token"], "max_amount": max_amount}
         intent["buy"] = sem.get("buy")
         # a swap needs to approve the router -> allow trusted routers only
         intent["allowed_spenders"] = list(TRUSTED_ROUTERS)
