@@ -63,10 +63,22 @@ def judge(intent, diff, model=JEV_MODEL):
         "questions": {
             "is_risk": {
                 "type": "noul",
-                "instructions": "Does this transaction pose a financial risk given the user's intent?",
+                "instructions": (
+                    "A wallet is about to execute this transaction for the user. "
+                    "Judge it the way a careful human would: look at whether the "
+                    "transaction grants any power over the user's assets (e.g. an "
+                    "approval that lets another address move the user's tokens, or a "
+                    "transfer out). If it grants such power, ask: did the user's "
+                    "instruction clearly require this? Granting someone the ability to "
+                    "move your funds when the user never asked for it is dangerous by "
+                    "default. It is only acceptable when it is an obviously necessary "
+                    "step of what the user explicitly asked to do (for example, a swap "
+                    "genuinely requires approving the swap contract). Is this transaction "
+                    "a RISK?"
+                ),
                 "criteria": {
-                    "true": "The effect exceeds or diverges from what the user asked for, or an unspecified field is being filled with something dangerous.",
-                    "false": "The effect is consistent with and proportional to the user's stated intent.",
+                    "true": "It grants power over the user's funds (an approval or outgoing transfer) that the user did not ask for and that is not an obviously necessary step of their stated task; or the amount/recipient goes beyond what the task needs.",
+                    "false": "Any power granted is an obviously necessary, proportional step of exactly what the user asked to do.",
                 },
             }
         },
